@@ -1,6 +1,7 @@
 package fancylocking
 
 import (
+  "context"
   "time"
 )
 
@@ -60,6 +61,19 @@ func (m MutexWithDeadline) LockWithDeadline(when time.Time) bool {
   case m <- struct{}{}:
     return true
   case <-time.After(time.Until(when)):
+    return false
+  }
+}
+
+/*
+LockWithContext locks a mutex if the lock can be acquired while the
+context passed is still active.
+*/
+func (m MutexWithDeadline) LockWithContext(ctx context.Context) bool {
+  select {
+  case m <- struct{}{}:
+    return true
+  case <-ctx.Done():
     return false
   }
 }
